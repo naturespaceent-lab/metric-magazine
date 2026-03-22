@@ -550,6 +550,21 @@ async function downloadArticleImages(articles) {
 // RSS Feed Parsing
 // ============================================================
 
+// Filter out non-K-pop content (esports, gaming, etc.)
+const BLOCKED_KEYWORDS = [
+  'esports', 'esport', 'e-sports', 'counter-strike', 'valorant', 'league of legends',
+  'overwatch', 'fortnite', 'minecraft', 'gaming', 'gamer', 'twitch streamer',
+  'cheating during', 'tournament ban', 'fps game', 'moba',
+];
+
+function isRelevantContent(title, description) {
+  const combined = `${title} ${description}`.toLowerCase();
+  for (const keyword of BLOCKED_KEYWORDS) {
+    if (combined.includes(keyword)) return false;
+  }
+  return true;
+}
+
 function parseRssFeed(xml, sourceName) {
   const items = extractItems(xml);
   const articles = [];
@@ -569,6 +584,11 @@ function parseRssFeed(xml, sourceName) {
     if (!image) image = extractImageFromContent(description);
 
     if (!title || !link) continue;
+
+    // Filter out non-K-pop content
+    if (!isRelevantContent(title, stripHtml(description || ''))) {
+      continue;
+    }
 
     articles.push({
       title,
@@ -983,20 +1003,35 @@ function rewriteArticleBody(articleContent, title) {
   const inlineImages = (articleContent?.images || []).slice(1, 4);
 
   const paragraphs = [];
+  const usedTexts = new Set();
+  const pickUnique = (arr) => {
+    const available = arr.filter(t => !usedTexts.has(t));
+    if (available.length === 0) return arr[Math.floor(Math.random() * arr.length)];
+    const picked = available[Math.floor(Math.random() * available.length)];
+    usedTexts.add(picked);
+    return picked;
+  };
+  const shuffleAndPickUnique = (arr, n) => {
+    const available = arr.filter(t => !usedTexts.has(t));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, Math.min(n, shuffled.length));
+    for (const p of picked) usedTexts.add(p);
+    return picked;
+  };
 
   if (artist) {
     const templates = BODY_TEMPLATES[topic] || BODY_TEMPLATES.general;
     const sub = (text) => text.replace(/\{artist\}/g, artist);
 
-    paragraphs.push({ type: 'intro', text: sub(pickRandom(templates.opening)) });
+    paragraphs.push({ type: 'intro', text: sub(pickUnique(templates.opening)) });
 
     const bgCount = targetParagraphs >= 10 ? 2 : 1;
-    for (const bg of shuffleAndPick(SHARED_PARAGRAPHS.background, bgCount)) {
+    for (const bg of shuffleAndPickUnique(SHARED_PARAGRAPHS.background, bgCount)) {
       paragraphs.push({ type: 'body', text: sub(bg) });
     }
 
     const analysisCount = targetParagraphs >= 10 ? 3 : 2;
-    for (const a of shuffleAndPick(templates.analysis, analysisCount)) {
+    for (const a of shuffleAndPickUnique(templates.analysis, analysisCount)) {
       paragraphs.push({ type: 'body', text: sub(a) });
     }
 
@@ -1005,12 +1040,12 @@ function rewriteArticleBody(articleContent, title) {
     }
 
     const detailCount = targetParagraphs >= 10 ? 2 : 1;
-    for (const d of shuffleAndPick(SHARED_PARAGRAPHS.detail, detailCount)) {
+    for (const d of shuffleAndPickUnique(SHARED_PARAGRAPHS.detail, detailCount)) {
       paragraphs.push({ type: 'body', text: sub(d) });
     }
 
     const reactionCount = targetParagraphs >= 10 ? 2 : 1;
-    for (const r of shuffleAndPick(SHARED_PARAGRAPHS.reaction, reactionCount)) {
+    for (const r of shuffleAndPickUnique(SHARED_PARAGRAPHS.reaction, reactionCount)) {
       paragraphs.push({ type: 'body', text: sub(r) });
     }
 
@@ -1018,17 +1053,17 @@ function rewriteArticleBody(articleContent, title) {
       paragraphs.push({ type: 'image', src: inlineImages[1] });
     }
 
-    paragraphs.push({ type: 'body', text: sub(pickRandom(SHARED_PARAGRAPHS.impact)) });
-    paragraphs.push({ type: 'closing', text: sub(pickRandom(templates.closing)) });
+    paragraphs.push({ type: 'body', text: sub(pickUnique(SHARED_PARAGRAPHS.impact)) });
+    paragraphs.push({ type: 'closing', text: sub(pickUnique(templates.closing)) });
 
   } else {
-    paragraphs.push({ type: 'intro', text: pickRandom(NO_ARTIST_BODY.opening) });
+    paragraphs.push({ type: 'intro', text: pickUnique(NO_ARTIST_BODY.opening) });
 
-    for (const bg of shuffleAndPick(SHARED_PARAGRAPHS.noArtist.background, 2)) {
+    for (const bg of shuffleAndPickUnique(SHARED_PARAGRAPHS.noArtist.background, 2)) {
       paragraphs.push({ type: 'body', text: bg });
     }
 
-    for (const a of shuffleAndPick(NO_ARTIST_BODY.analysis, 2)) {
+    for (const a of shuffleAndPickUnique(NO_ARTIST_BODY.analysis, 2)) {
       paragraphs.push({ type: 'body', text: a });
     }
 
@@ -1036,11 +1071,11 @@ function rewriteArticleBody(articleContent, title) {
       paragraphs.push({ type: 'image', src: inlineImages[0] });
     }
 
-    for (const d of shuffleAndPick(SHARED_PARAGRAPHS.noArtist.detail, 2)) {
+    for (const d of shuffleAndPickUnique(SHARED_PARAGRAPHS.noArtist.detail, 2)) {
       paragraphs.push({ type: 'body', text: d });
     }
 
-    for (const r of shuffleAndPick(SHARED_PARAGRAPHS.noArtist.reaction, 1)) {
+    for (const r of shuffleAndPickUnique(SHARED_PARAGRAPHS.noArtist.reaction, 1)) {
       paragraphs.push({ type: 'body', text: r });
     }
 
@@ -1048,8 +1083,8 @@ function rewriteArticleBody(articleContent, title) {
       paragraphs.push({ type: 'image', src: inlineImages[1] });
     }
 
-    paragraphs.push({ type: 'body', text: pickRandom(SHARED_PARAGRAPHS.noArtist.impact) });
-    paragraphs.push({ type: 'closing', text: pickRandom(NO_ARTIST_BODY.closing) });
+    paragraphs.push({ type: 'body', text: pickUnique(SHARED_PARAGRAPHS.noArtist.impact) });
+    paragraphs.push({ type: 'closing', text: pickUnique(NO_ARTIST_BODY.closing) });
   }
 
   return { paragraphs };
@@ -1128,17 +1163,25 @@ function generateFakeStat() {
   return pickRandom(stats);
 }
 
+const SNAPSHOT_LABELS = [
+  'Global Streams', 'Album Sales', 'Fan Engagement', 'Chart Entries',
+  'MV Views', 'Social Mentions', 'Playlist Adds', 'Search Volume',
+];
+let snapshotLabelIdx = 0;
+
 function generateDataSnapshot(article) {
   if (!article) return '';
   const stat = generateFakeStat();
   const isUp = Math.random() > 0.3;
   const trendPct = (Math.random() * 25 + 2).toFixed(1);
-  const cat = displayCategoryFromTitle(article.originalTitle || article.title);
-  return `<div class="snap">
-          <div class="snap-label">${escapeHtml(cat)}</div>
+  const label = SNAPSHOT_LABELS[snapshotLabelIdx % SNAPSHOT_LABELS.length];
+  snapshotLabelIdx++;
+  const href = article.localUrl ? `href="${escapeHtml(article.localUrl)}"` : '';
+  return `<a ${href} class="snap" style="text-decoration:none;color:inherit;display:block;">
+          <div class="snap-label">${escapeHtml(label)}</div>
           <div class="snap-val">${stat}</div>
           <div class="snap-trend ${isUp ? 'up' : 'down'}">${isUp ? '+' : '-'}${trendPct}%</div>
-        </div>`;
+        </a>`;
 }
 
 function generateAnalysisCard(article) {
@@ -1307,7 +1350,7 @@ async function generateArticlePages(allArticles, usedArticles) {
 
     let html = articleTemplate
       .replace(/\{\{ARTICLE_TITLE\}\}/g, escapeHtml(article.title))
-      .replace('{{ARTICLE_DESCRIPTION}}', escapeHtml(article.title).slice(0, 160))
+      .replace(/\{\{ARTICLE_DESCRIPTION\}\}/g, escapeHtml(article.title).slice(0, 160))
       .replace('{{ARTICLE_IMAGE}}', escapeHtml(heroImgSrc))
       .replace('{{ARTICLE_CATEGORY}}', escapeHtml(articleCat))
       .replace('{{ARTICLE_DATE}}', escapeHtml(article.formattedDate))
@@ -1436,16 +1479,31 @@ async function main() {
   await fillMissingImages(articles);
   log('');
 
-  // 3. Rewrite ALL titles to data-analytics English
+  // 3. Rewrite ALL titles to data-analytics English (with deduplication)
   log('Rewriting titles to METRIC analytical style...');
   let rewritten = 0;
+  const usedTitles = new Set();
+  let dedupCounter = 0;
   for (const article of articles) {
     const original = article.title;
     article.originalTitle = original;
-    article.title = rewriteTitle(original);
+    // Try up to 15 times to get a unique title
+    let newTitle = rewriteTitle(original);
+    let attempts = 0;
+    while (usedTitles.has(newTitle) && attempts < 15) {
+      newTitle = rewriteTitle(original);
+      attempts++;
+    }
+    // If still duplicate after 15 tries, append a unique counter suffix
+    if (usedTitles.has(newTitle)) {
+      dedupCounter++;
+      newTitle = `${newTitle} — ${article.source} Edition #${dedupCounter}`;
+    }
+    usedTitles.add(newTitle);
+    article.title = newTitle;
     if (article.title !== original) rewritten++;
   }
-  log(`  Rewritten ${rewritten}/${articles.length} titles`);
+  log(`  Rewritten ${rewritten}/${articles.length} titles (all unique)`);
   log('');
 
   // 4. Backdate articles from Jan 1 to Mar 22, 2026

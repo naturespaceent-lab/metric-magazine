@@ -137,7 +137,9 @@
     .snap {
       background: #fff;
       padding: 14px 16px;
+      transition: background 0.15s;
     }
+    a.snap:hover { background: #fafafa; }
     .snap-label {
       font-size: 10px;
       font-weight: 700;
@@ -377,6 +379,18 @@
       color: #bbb;
     }
 
+    /* --- HAMBURGER TOGGLE --- */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
     /* --- RESPONSIVE --- */
     @media (max-width: 768px) {
       .hero { flex-direction: column; }
@@ -385,6 +399,21 @@
       .snapshots { grid-template-columns: repeat(2, 1fr); }
       .deep-grid { grid-template-columns: 1fr; }
       .nav-links { display: none; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 48px;
+        left: 0;
+        right: 0;
+        background: #fff;
+        padding: 12px 20px;
+        gap: 10px;
+        border-bottom: 2px solid #333;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
+      .nav-toggle { display: block; }
       .footer { flex-direction: column; gap: 8px; }
     }
     @media (max-width: 480px) {
@@ -394,8 +423,9 @@
   </style>
 </head>
 <body>
-  <nav class="nav">
+  <nav class="nav" style="position:relative;">
     <a href="index.html" class="nav-logo">METR<span>I</span>C</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
     <div class="nav-links">
       <a href="#">CHARTS</a>
       <a href="#">STREAMING</a>
