@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTS's Chart Performance: Dissecting the Numbers -- METRIC</title>
+  <meta name="description" content="BTS's Chart Performance: Dissecting the Numbers">
+  <meta property="og:title" content="BTS's Chart Performance: Dissecting the Numbers">
+  <meta property="og:description" content="{{ARTICLE_DESCRIPTION}}">
+  <meta property="og:image" content="../images/article-0-72667.jpg">
+  <meta property="og:type" content="article">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background: #FFFFFF;
+      color: #222222;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-headline { font-family: 'Space Grotesk', system-ui, sans-serif; }
+    .font-mono { font-family: 'IBM Plex Mono', monospace; }
+
+    /* Navigation */
+    .nav-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid #E0E0E0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      color: #222222;
+      text-decoration: none;
+    }
+    .nav-logo .dot { color: #FF6B35; }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: #666666;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #FF6B35; }
+
+    /* Article Header */
+    .article-header {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 0;
+    }
+    .article-category {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #FF6B35;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    .article-title {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .article-meta {
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #F0F0F0;
+    }
+    .article-meta .metric-byline {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 600;
+      color: #FF6B35;
+    }
+
+    /* Hero Image */
+    .article-hero {
+      max-width: 900px;
+      margin: 32px auto 0;
+      padding: 0 24px;
+    }
+    .article-hero img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+    .article-hero .photo-credit {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #999;
+      text-align: right;
+      margin-top: 8px;
+    }
+
+    /* Article Body */
+    .article-body {
+      max-width: 720px;
+      margin: 40px auto 0;
+      padding: 0 24px;
+    }
+    .article-body p {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #333;
+      margin-bottom: 24px;
+    }
+    .article-body .editorial-intro {
+      font-size: 20px;
+      line-height: 1.7;
+      color: #222;
+      border-left: 4px solid #FF6B35;
+      padding-left: 24px;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+    .article-body .editorial-closing {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #666;
+      border-top: 1px solid #E0E0E0;
+      padding-top: 24px;
+      margin-top: 16px;
+      font-style: italic;
+    }
+    .article-body .stat-callout {
+      background: #f4f4f4;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      border-left: 4px solid #2E86AB;
+    }
+    .article-body .stat-callout .stat-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      color: #2E86AB;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .article-body .stat-callout .stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: #666;
+    }
+    .article-body blockquote {
+      border-left: 4px solid #FF6B35;
+      margin: 32px 0;
+      padding: 20px 24px;
+      background: #FFF8F5;
+      border-radius: 0 8px 8px 0;
+      font-size: 18px;
+      line-height: 1.7;
+      color: #333;
+      font-style: italic;
+    }
+    .article-body .article-inline-image {
+      margin: 32px -48px;
+    }
+    .article-body .article-inline-image img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* Source Attribution */
+    .source-attribution {
+      max-width: 720px;
+      margin: 40px auto 0;
+      padding: 20px 24px;
+      background: #f4f4f4;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .source-attribution a {
+      color: #2E86AB;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .source-attribution a:hover { text-decoration: underline; }
+    .source-attribution .read-original {
+      display: inline-block;
+      margin-top: 8px;
+      color: #FF6B35;
+      font-weight: 600;
+    }
+
+    /* Related Articles */
+    .related-section {
+      max-width: 900px;
+      margin: 48px auto 0;
+      padding: 0 24px 64px;
+    }
+    .related-header {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .related-header .accent-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, #FF6B35, transparent);
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .related-card {
+      background: #FFFFFF;
+      border: 1px solid #E0E0E0;
+      border-radius: 8px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .related-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .related-card .thumb {
+      aspect-ratio: 16/9;
+      overflow: hidden;
+    }
+    .related-card .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .related-card .related-body {
+      padding: 16px;
+    }
+    .related-card .related-category {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #FF6B35;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .related-card h3 {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #222;
+      margin-bottom: 8px;
+    }
+    .related-card .date {
+      font-size: 11px;
+      color: #999;
+    }
+
+    /* Footer */
+    .site-footer {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      border-top: 2px solid #E0E0E0;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-brand {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: #222;
+    }
+    .footer-brand .dot { color: #FF6B35; }
+    .footer-copy {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #999;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .article-title { font-size: 28px; }
+      .article-body .article-inline-image { margin: 24px 0; }
+      .related-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">METR<span class="dot">I</span>C</a>
+      <div class="nav-links">
+        <a href="../index.html">CHARTS</a>
+        <a href="../index.html">STREAMING</a>
+        <a href="../index.html">ANALYSIS</a>
+        <a href="../index.html">TRENDS</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Article Header -->
+  <header class="article-header">
+    <div class="article-category">CHARTS</div>
+    <h1 class="article-title">BTS's Chart Performance: Dissecting the Numbers</h1>
+    <div class="article-meta">
+      <span class="metric-byline">METRIC Research</span>
+      <span>March 20, 2026</span>
+    </div>
+  </header>
+
+  <!-- Hero Image -->
+  <div class="article-hero">
+    <img src="../images/article-0-72667.jpg" alt="BTS's Chart Performance: Dissecting the Numbers" width="760" height="428" loading="eager" referrerpolicy="no-referrer" data-fallback="https://picsum.photos/seed/BTS's%20Chart%20Performa/800/450" onerror="if(!this.dataset.failed){this.dataset.failed='1';this.src=this.dataset.fallback}">
+    <div class="photo-credit">Photo: &copy;Soompi</div>
+  </div>
+
+  <!-- Article Body -->
+  <article class="article-body">
+    <div class="editorial-intro">The charts have spoken, and BTS is leading the conversation. From streaming counts to download figures, the statistical profile of this release is among the strongest we've tracked this year.</div>
+        <p>The K-pop market's competitive landscape provides important context for BTS's performance. With more acts releasing more frequently, maintaining or growing chart positions requires genuine audience engagement -- something BTS's data consistently demonstrates.</p>
+        <p>A deeper dive into the streaming data reveals that BTS's unique listener count is growing at an above-average rate compared to comparable releases. The ratio of unique listeners to total streams suggests high replay value -- a metric that often predicts long-term chart endurance.</p>
+        <p>Cross-platform analysis shows BTS performing consistently across Spotify, Apple Music, and YouTube Music. This kind of platform parity is significant; releases that over-index on a single platform tend to have shorter chart lifespans.</p>
+        <p>The geographical distribution of BTS's streams has been diversifying. While domestic Korean streams still represent a significant share, markets in Southeast Asia, North America, and Europe have been growing at a faster rate. This geographic diversification reduces market concentration risk.</p>
+        <p>Global fan response data reveals interesting geographic patterns. While East Asian markets drove the initial surge in engagement, North American and European fan activity followed within hours, creating a rolling wave of social media activity that sustained trending status for an extended period.</p>
+        <p>Looking ahead, the trajectory suggested by BTS's current data points is positive. If recent growth rates are maintained, several significant milestones are within reach in the coming months. METRIC will continue tracking these projections against actual results.</p>
+        <div class="editorial-closing">The data suggests BTS's chart presence is far from a flash. We'll provide updated analysis as new weekly figures come in.</div>
+  </article>
+
+  <!-- Source Attribution -->
+  <div class="source-attribution" style="max-width:720px;margin:40px auto 0;padding:20px 24px;">
+          Source: <a href="https://www.soompi.com/article/1826826wpp/bts-sweeps-top-14-spots-on-spotify-global-chart-breaks-1st-day-stream-records-with-arirang" target="_blank" rel="noopener noreferrer">Soompi</a>
+          <br><a href="https://www.soompi.com/article/1826826wpp/bts-sweeps-top-14-spots-on-spotify-global-chart-breaks-1st-day-stream-records-with-arirang" target="_blank" rel="noopener noreferrer" class="read-original">Read original article &rarr;</a>
+        </div>
+
+  <!-- Related Articles -->
+  <section class="related-section">
+    <div class="related-header">
+      More Analysis
+      <div class="accent-line"></div>
+    </div>
+    <div class="related-grid">
+      
+          <a href="../articles/article-010.html" class="related-card">
+            <div class="thumb">
+              <img src="../images/article-9-72778.jpg" alt="K-Pop Market Snapshot: Trends and Takeaways" width="400" height="225" loading="lazy" referrerpolicy="no-referrer" data-fallback="https://picsum.photos/seed/K-Pop%20Market%20Snapsho/400/225" onerror="if(!this.dataset.failed){this.dataset.failed='1';this.src=this.dataset.fallback}">
+            </div>
+            <div class="related-body">
+              <div class="related-category">LIVE DATA</div>
+              <h3>K-Pop Market Snapshot: Trends and Takeaways</h3>
+              <span class="date">March 16, 2026</span>
+            </div>
+          </a>
+          <a href="../articles/article-004.html" class="related-card">
+            <div class="thumb">
+              <img src="../images/article-3-72668.jpg" alt="The Numbers Behind K-Pop's Biggest Story This Week" width="400" height="225" loading="lazy" referrerpolicy="no-referrer" data-fallback="https://picsum.photos/seed/The%20Numbers%20Behind%20K/400/225" onerror="if(!this.dataset.failed){this.dataset.failed='1';this.src=this.dataset.fallback}">
+            </div>
+            <div class="related-body">
+              <div class="related-category">CHARTS</div>
+              <h3>The Numbers Behind K-Pop's Biggest Story This Week</h3>
+              <span class="date">March 21, 2026</span>
+            </div>
+          </a>
+          <a href="../articles/article-003.html" class="related-card">
+            <div class="thumb">
+              <img src="../images/article-2-72668.jpg" alt="Industry Data Roundup: What Moved in K-Pop This Week" width="400" height="225" loading="lazy" referrerpolicy="no-referrer" data-fallback="https://picsum.photos/seed/Industry%20Data%20Roundu/400/225" onerror="if(!this.dataset.failed){this.dataset.failed='1';this.src=this.dataset.fallback}">
+            </div>
+            <div class="related-body">
+              <div class="related-category">ANALYSIS</div>
+              <h3>Industry Data Roundup: What Moved in K-Pop This Week</h3>
+              <span class="date">March 22, 2026</span>
+            </div>
+          </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">METR<span class="dot">I</span>C</div>
+      <div class="footer-copy">Data-driven K-Pop analysis &mdash; All data sourced from public charts and streaming platforms.</div>
+    </div>
+  </footer>
+</body>
+</html>

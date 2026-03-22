@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>METRIC -- K-Pop Data Analytics Magazine</title>
+  <meta name="description" content="Data-driven K-Pop analysis. Charts, streaming numbers, sales analytics, and ranking breakdowns.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    a { color: #333; }
+    a:hover { color: #e65100; }
+
+    /* --- NAV --- */
+    .nav {
+      background: #fff;
+      border-bottom: 2px solid #333;
+      padding: 0 20px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .nav-logo {
+      font-family: Georgia, serif;
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -1px;
+      color: #333;
+      text-decoration: none;
+    }
+    .nav-logo span { color: #e65100; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: #666;
+    }
+    .nav-links a:hover { color: #e65100; }
+
+    /* --- WRAPPER --- */
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* --- SECTION HEADERS --- */
+    .section-hd {
+      font-family: Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #e65100;
+      border-bottom: 1px solid #ddd;
+      padding: 16px 0 6px;
+      margin: 24px 0 12px;
+    }
+
+    /* --- HERO --- */
+    .hero {
+      background: #fff;
+      border: 1px solid #ddd;
+      margin-top: 16px;
+      display: flex;
+      text-decoration: none;
+      color: inherit;
+    }
+    .hero:hover { border-color: #e65100; }
+    .hero-img {
+      width: 380px;
+      min-height: 240px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .hero-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hero-cat {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #e65100;
+      margin-bottom: 6px;
+    }
+    .hero-stat {
+      font-family: monospace;
+      font-size: 42px;
+      font-weight: 700;
+      color: #e65100;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .hero-title {
+      font-family: Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .hero-meta {
+      font-size: 11px;
+      color: #999;
+    }
+    .hero-meta span + span { margin-left: 12px; }
+
+    /* --- DATA SNAPSHOTS (table-like) --- */
+    .snapshots {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #ddd;
+      border: 1px solid #ddd;
+    }
+    .snap {
+      background: #fff;
+      padding: 14px 16px;
+    }
+    .snap-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .snap-val {
+      font-family: monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .snap-trend {
+      font-family: monospace;
+      font-size: 11px;
+    }
+    .snap-trend.up { color: #2e7d32; }
+    .snap-trend.down { color: #c62828; }
+
+    /* --- LATEST ANALYSIS (plain list) --- */
+    .analysis-list { list-style: none; }
+    .analysis-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-top: none;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .analysis-item:first-child { border-top: 1px solid #ddd; }
+    .analysis-item:hover { background: #fafafa; }
+    .analysis-thumb {
+      width: 80px;
+      height: 52px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .analysis-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .analysis-info { flex: 1; min-width: 0; }
+    .analysis-cat {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #e65100;
+    }
+    .analysis-title {
+      font-family: Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 2px 0;
+    }
+    .analysis-meta {
+      font-size: 11px;
+      color: #999;
+    }
+    .analysis-read {
+      font-family: monospace;
+      font-size: 11px;
+      color: #999;
+      white-space: nowrap;
+    }
+
+    /* --- CHART WATCH (numbered table) --- */
+    .chart-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+    .chart-table th {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid #ddd;
+      background: #fafafa;
+    }
+    .chart-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .chart-table tr:hover { background: #fafafa; }
+    .chart-table a { text-decoration: none; color: inherit; }
+    .chart-table a:hover .ct-title { color: #e65100; }
+    .ct-rank {
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ccc;
+      width: 36px;
+      text-align: center;
+    }
+    .ct-rank.top { color: #e65100; }
+    .ct-chg {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      width: 36px;
+      text-align: center;
+    }
+    .ct-chg.up { color: #2e7d32; }
+    .ct-chg.down { color: #c62828; }
+    .ct-chg.same { color: #999; }
+    .ct-thumb {
+      width: 40px;
+      height: 40px;
+      overflow: hidden;
+    }
+    .ct-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .ct-title { font-weight: 600; }
+    .ct-meta {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* --- DEEP DIVES --- */
+    .deep-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1px;
+      background: #ddd;
+      border: 1px solid #ddd;
+    }
+    .deep-main {
+      background: #fff;
+      text-decoration: none;
+      color: inherit;
+    }
+    .deep-main:hover { background: #fafafa; }
+    .deep-main-img {
+      width: 100%;
+      aspect-ratio: 2/1;
+      overflow: hidden;
+    }
+    .deep-main-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .deep-main-body { padding: 16px 20px; }
+    .deep-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #e65100;
+      margin-bottom: 4px;
+    }
+    .deep-title {
+      font-family: Georgia, serif;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .deep-main .deep-title { font-size: 18px; }
+    .deep-read {
+      font-family: monospace;
+      font-size: 11px;
+      color: #999;
+    }
+    .deep-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: #ddd;
+    }
+    .deep-side {
+      background: #fff;
+      padding: 16px 20px;
+      text-decoration: none;
+      color: inherit;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .deep-side:hover { background: #fafafa; }
+    .deep-side .deep-title { font-size: 14px; }
+
+    /* --- FOOTER --- */
+    .footer {
+      max-width: 960px;
+      margin: 24px auto 0;
+      padding: 16px 20px;
+      border-top: 2px solid #333;
+      font-size: 11px;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .footer-brand {
+      font-family: Georgia, serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #333;
+    }
+    .footer-brand span { color: #e65100; }
+    .footer-right a {
+      color: #999;
+      text-decoration: none;
+      margin-left: 16px;
+    }
+    .footer-right a:hover { color: #e65100; }
+    .footer-copy {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 8px 20px 24px;
+      font-family: monospace;
+      font-size: 10px;
+      color: #bbb;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+      .hero { flex-direction: column; }
+      .hero-img { width: 100%; min-height: 180px; }
+      .hero-stat { font-size: 32px; }
+      .snapshots { grid-template-columns: repeat(2, 1fr); }
+      .deep-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .footer { flex-direction: column; gap: 8px; }
+    }
+    @media (max-width: 480px) {
+      .snapshots { grid-template-columns: 1fr; }
+      .analysis-thumb { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">METR<span>I</span>C</a>
+    <div class="nav-links">
+      <a href="#">CHARTS</a>
+      <a href="#">STREAMING</a>
+      <a href="#">ANALYSIS</a>
+      <a href="#">TRENDS</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    {{HERO_CARD}}
+
+    <div class="section-hd">Data Snapshots</div>
+    <div class="snapshots">
+      {{DATA_SNAPSHOTS}}
+    </div>
+
+    <div class="section-hd">Latest Analysis</div>
+    <div class="analysis-list">
+      {{LATEST_ANALYSIS}}
+    </div>
+
+    <div class="section-hd">Chart Watch</div>
+    <table class="chart-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>+/-</th>
+          <th></th>
+          <th>Title</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{CHART_WATCH}}
+      </tbody>
+    </table>
+
+    <div class="section-hd">Deep Dives</div>
+    <div class="deep-grid">
+      {{DEEP_DIVES}}
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">METR<span>I</span>C</div>
+    <div class="footer-right">
+      <a href="#">Charts</a>
+      <a href="#">Streaming</a>
+      <a href="#">Analysis</a>
+      <a href="#">Methodology</a>
+    </div>
+  </div>
+  <div class="footer-copy">
+    METRIC &mdash; K-Pop Data Analytics &mdash; All data sourced from public charts and streaming platforms.
+  </div>
+</body>
+</html>
